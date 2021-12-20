@@ -4,6 +4,7 @@ import SearchBox from '../components/SearchBox';
 // import { robots } from './robots';
 // we have to destructure it with the {} because robots.js didn't use export default, so technically it can export more than 1 thing and we have to specify which variable it is that we want to use
 import Scroll from '../components/Scroll';
+import ErrorBoundary from '../components/ErrorBoundary';
 import './App.css';
 
 class App extends React.Component {
@@ -44,7 +45,9 @@ class App extends React.Component {
         <SearchBox searchChange={this.onSearchChange}/>
         {/* to make CardList a scrollable element */}
         <Scroll>
-          <CardList robots={filteredRobots}/>
+          <ErrorBoundary>
+            <CardList robots={filteredRobots}/>
+          </ErrorBoundary>
         </Scroll>
       </div>
     );
