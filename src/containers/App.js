@@ -1,4 +1,4 @@
-import React from 'react';
+import { useState, useEffect } from 'react';
 import CardList from '../components/CardList';
 import SearchBox from '../components/SearchBox';
 // import { robots } from './robots';
@@ -7,51 +7,45 @@ import Scroll from '../components/Scroll';
 import ErrorBoundary from '../components/ErrorBoundary';
 import './App.css';
 
-class App extends React.Component {
-  constructor() {
-    super();
-    this.state = {
-      robots: [],
-      searchfield: ''
-    }
-  }
+function App() {
+  const [robots, setRobots] = useState([]);
+  const [searchfield, setSearchfield] = useState('');
+  const [count, setCount] = useState(0);
 
-  // invoked immediately after a component is mounted, which is after render()
-  // then it will call render() again, because there's an update to the state
-  // no need to use arrow function synctax like below because it's a built in function of react
-  componentDidMount() {
+  useEffect(() => {
     fetch('https://jsonplaceholder.typicode.com/users')
-      .then(response => response.json())
-      .then(users => this.setState({ robots: users }));
-  }
+      .then((response) => response.json())
+      .then((users) => {
+        setRobots(users);
+      });
+    console.log(count);
+  }, [count]);
 
-  // must use arrow function syntax instead of onSearchChange(e) => {} because then "this" wouldn't be referring to App which causes an error
-  onSearchChange = (e) => {
-    // must use setState any time you want to update a state
-    this.setState({ searchfield: e.target.value })
-  }
+  const onSearchChange = (e) => {
+    setSearchfield(e.target.value);
+  };
 
-  render() {
-    // use destructuring to avoid having to type "this.state" anymore below this line
-    const { robots, searchfield } = this.state;
+  const filteredRobots = robots.filter((robot) =>
+    robot.name.toLowerCase().includes(searchfield.toLowerCase())
+  );
 
-    const filteredRobots = robots.filter(robot => robot.name.toLowerCase().includes(searchfield.toLowerCase()));
-    return !robots.length ?
-    <h1>Loading...</h1> : 
-    (
-      <div className='tc'>
-        <h1 className='f1'>RoboFriends</h1>
-        {/* must use "this." because App is an object */}
-        <SearchBox searchChange={this.onSearchChange}/>
-        {/* to make CardList a scrollable element */}
-        <Scroll>
-          <ErrorBoundary>
-            <CardList robots={filteredRobots}/>
-          </ErrorBoundary>
-        </Scroll>
-      </div>
-    );
-  }
+  return !robots.length ? (
+    <h1>Loading...</h1>
+  ) : (
+    <div className='tc'>
+      <h1 className='f1'>RoboFriends</h1>
+      <button onClick={() => setCount(count + 1)}>
+        Click me to increase count!
+      </button>
+      <SearchBox searchChange={onSearchChange} />
+      {/* to make CardList a scrollable element */}
+      <Scroll>
+        <ErrorBoundary>
+          <CardList robots={filteredRobots} />
+        </ErrorBoundary>
+      </Scroll>
+    </div>
+  );
 }
 
 export default App;
