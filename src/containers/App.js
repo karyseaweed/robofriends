@@ -1,4 +1,7 @@
-import { useState, useEffect } from 'react';
+import { Component } from 'react';
+import { connect } from 'react-redux';
+import { setSearchField, requestRobots } from '../actions';
+
 import CardList from '../components/CardList';
 import SearchBox from '../components/SearchBox';
 // import { robots } from './robots';
@@ -7,45 +10,52 @@ import Scroll from '../components/Scroll';
 import ErrorBoundary from '../components/ErrorBoundary';
 import './App.css';
 
-function App() {
-  const [robots, setRobots] = useState([]);
-  const [searchfield, setSearchfield] = useState('');
-  const [count, setCount] = useState(0);
-
-  useEffect(() => {
-    fetch('https://jsonplaceholder.typicode.com/users')
-      .then((response) => response.json())
-      .then((users) => {
-        setRobots(users);
-      });
-    console.log(count);
-  }, [count]);
-
-  const onSearchChange = (e) => {
-    setSearchfield(e.target.value);
+// tells App.js what state it should listen to
+const mapStateToProps = (state) => {
+  return {
+    searchField: state.searchRobots.searchField,
+    robots: state.requestRobots.robots,
+    isPending: state.requestRobots.isPending,
+    error: state.requestRobots.error,
   };
+};
 
-  const filteredRobots = robots.filter((robot) =>
-    robot.name.toLowerCase().includes(searchfield.toLowerCase())
-  );
+// tells App.js what actions it should listen to
+const mapDispatchToProps = (dispatch) => {
+  return {
+    onSearchChange: (e) => dispatch(setSearchField(e.target.value)),
+    onRequestRobots: () => requestRobots(dispatch),
+  };
+};
 
-  return !robots.length ? (
-    <h1>Loading...</h1>
-  ) : (
-    <div className='tc'>
-      <h1 className='f1'>RoboFriends</h1>
-      <button onClick={() => setCount(count + 1)}>
-        Click me to increase count!
-      </button>
-      <SearchBox searchChange={onSearchChange} />
-      {/* to make CardList a scrollable element */}
-      <Scroll>
-        <ErrorBoundary>
-          <CardList robots={filteredRobots} />
-        </ErrorBoundary>
-      </Scroll>
-    </div>
-  );
+class App extends Component {
+  componentDidMount() {
+    this.props.onRequestRobots();
+  }
+
+  render() {
+    const { searchField, onSearchChange, robots, isPending, onRequestRobots } =
+      this.props;
+    const filteredRobots = robots.filter((robot) =>
+      robot.name.toLowerCase().includes(searchField.toLowerCase())
+    );
+
+    return !robots.length ? (
+      <h1>Loading...</h1>
+    ) : (
+      <div className='tc'>
+        <h1 className='f1'>RoboFriends</h1>
+        <SearchBox searchChange={onSearchChange} />
+        {/* to make CardList a scrollable element */}
+        <Scroll>
+          <ErrorBoundary>
+            <CardList robots={filteredRobots} />
+          </ErrorBoundary>
+        </Scroll>
+      </div>
+    );
+  }
 }
 
-export default App;
+// use connect() to subscribe App.js to any state changes in the redux store
+export default connect(mapStateToProps, mapDispatchToProps)(App);
